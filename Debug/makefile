@@ -13,6 +13,7 @@ ORDERED_OBJS += \
 "./main.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
 "./uartstdio.obj" \
+"./bee/bee.obj" \
 "./motor_ctl/motor_ctl.obj" \
 "./radio/radio.obj" \
 "../tm4c123gh6pm.cmd" \
@@ -28,9 +29,11 @@ RMDIR := RMDIR /S/Q
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir_vars.mk
+-include bee/subdir_vars.mk
 -include motor_ctl/subdir_vars.mk
 -include radio/subdir_vars.mk
 -include subdir_rules.mk
+-include bee/subdir_rules.mk
 -include motor_ctl/subdir_rules.mk
 -include radio/subdir_rules.mk
 -include objects.mk
@@ -161,8 +164,8 @@ car_radio_echo.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "main.obj" "tm4c123gh6pm_startup_ccs.obj" "uartstdio.obj" "motor_ctl\motor_ctl.obj" "radio\radio.obj" 
-	-$(RM) "main.d" "tm4c123gh6pm_startup_ccs.d" "uartstdio.d" "motor_ctl\motor_ctl.d" "radio\radio.d" 
+	-$(RM) "main.obj" "tm4c123gh6pm_startup_ccs.obj" "uartstdio.obj" "bee\bee.obj" "motor_ctl\motor_ctl.obj" "radio\radio.obj" 
+	-$(RM) "main.d" "tm4c123gh6pm_startup_ccs.d" "uartstdio.d" "bee\bee.d" "motor_ctl\motor_ctl.d" "radio\radio.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

@@ -25,6 +25,7 @@
 #include "utils/uartstdio.h"
 
 #include "motor_ctl.h"
+#include "radio.h"
 
 
 static void motor_Set1Dir(uint16_t ui16CW);
@@ -32,6 +33,8 @@ static void motor_Set3Dir(uint16_t ui16CW);
 static void motor_DirInit(void);
 static void motor_SetMotor1(int pwm_value);
 static void motor_SetMotor3(int pwm_value);
+
+unsigned char direction;
 //*****************************************************************************
 //
 // MOTOR-PWM初始设置函数
@@ -97,7 +100,8 @@ static void motor_SetMotor1(int pwm_value)
     }
     else
         motor_Set1Dir(1);
-	pwm_value = pwm_value < 1 ? 1 : pwm_value;
+//	pwm_value = pwm_value < 1 ? 1 : pwm_value;
+    pwm_value = pwm_value < 1 ? fabs(pwm_value)+1 : pwm_value;
 	pwm_value = pwm_value > PWM_MAXVALUE ? PWM_MAXVALUE : pwm_value;
 
 	PWMPulseWidthSet(PWM_MOTORX_BASE, PWM_OUT_MOTOR1,
@@ -117,7 +121,8 @@ static void motor_SetMotor3(int pwm_value)
     }
     else
         motor_Set3Dir(1);
-	pwm_value = pwm_value < 1 ? 1 : pwm_value;
+//	pwm_value = pwm_value < 1 ? 1 : pwm_value;
+    pwm_value = pwm_value < 1 ? fabs(pwm_value)+1 : pwm_value;
 	pwm_value = pwm_value > PWM_MAXVALUE ? PWM_MAXVALUE : pwm_value;
 
 	PWMPulseWidthSet(PWM_MOTORX_BASE, PWM_OUT_MOTOR3,
@@ -249,35 +254,72 @@ static void motor_Set3Dir(uint16_t ui16CW)
 		GPIOPinWrite(GPIO_PORT_MOTOR3DIR_BASE, GPIO_PIN_MOTOR3DIR, 0x0);
 }
 }
-void car_driver(uint8_t Command)
+void car_driver(void)
 {
-    int v_target=10;
+    static int v_target=65;
     // 电机旋转方向默认1，顺时针
 
-        switch (Command)
+        switch (command)
         {
         case 0x01:                                           //串口屏发1
 //              rt_event_send(order_event, ORDER_EVENT_1);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
             motor_set_speed(v_target,v_target);
             break;
         case 0x02:                                           //串口屏发2
 //              rt_event_send(order_event, ORDER_EVENT_2);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0);
             motor_set_speed(-v_target,-v_target);
             break;
         case 0x03:                                           //串口屏发3
 //              rt_event_send(order_event, ORDER_EVENT_3);
-            motor_set_speed(v_target,0);
+            if(v_target>0)
+            {
+                motor_set_speed(v_target,v_target-3);
+
+            }
+            else
+            {
+                motor_set_speed(-v_target,-(v_target-3));
+
+            }
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
             break;
         case 0x04:                                           //串口屏发4
 //              rt_event_send(order_event, ORDER_EVENT_4);
-            motor_set_speed(0,v_target);
+
+            if(v_target>0)
+            {
+                motor_set_speed(v_target-3,v_target);
+
+            }
+            else
+            {
+                motor_set_speed(-(v_target-3),-v_target);
+
+            }
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0);
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
             break;
         case 0x05:                                          //串口屏发4
-            v_target+=10;
-            motor_set_speed(v_target/2,v_target/2);
+           // motor_set_speed(v_target-5,v_target-5);
+            v_target+=1;
+            motor_set_speed(v_target,v_target);
             break;
         case 0x06:
+            v_target-=1;
+            motor_set_speed(v_target,v_target);
+            //motor_set_speed(0,0);
+            break;
+        case 0x07:
             motor_set_speed(0,0);
+            //v_target+=1;
+            break;
+        case 0x08:
+            //v_target-=1;
             break;
         case 0x00:
             motor_set_speed(0,0);
@@ -286,8 +328,8 @@ void car_driver(uint8_t Command)
 }
 void motor_set_speed(int speed_L,int speed_R)
 {
-    motor_SetMotor1(speed_L*10);
-    motor_SetMotor3(speed_R*10);
+    motor_SetMotor1(speed_L);
+    motor_SetMotor3(speed_R);
 }
 
 

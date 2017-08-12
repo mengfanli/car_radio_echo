@@ -57,7 +57,7 @@
 // extern function.
 extern void motor_Init(void);
 extern void motor_Control(uint8_t *uart_data);
-extern void car_driver(uint8_t Command);
+extern void car_driver(void);
 void motor_set_speed(int speed_L,int speed_R);
 
 

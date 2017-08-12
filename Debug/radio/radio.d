@@ -18,6 +18,7 @@ radio/radio.obj: C:/ti/TivaWare_C_Series-2.1.2.111/utils/uartstdio.h
 radio/radio.obj: C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.0.LTS/include/stdarg.h
 radio/radio.obj: C:/Users/mengfanli2/workspace_2_1/car_radio_echo/motor_ctl/motor_ctl.h
 radio/radio.obj: ../radio/radio.h
+radio/radio.obj: C:/Users/mengfanli2/workspace_2_1/car_radio_echo/bee/bee.h
 
 ../radio/radio.c: 
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.0.LTS/include/stdbool.h: 
@@ -37,3 +38,4 @@ C:/ti/TivaWare_C_Series-2.1.2.111/utils/uartstdio.h:
 C:/ti/ccsv7/tools/compiler/ti-cgt-arm_16.9.0.LTS/include/stdarg.h: 
 C:/Users/mengfanli2/workspace_2_1/car_radio_echo/motor_ctl/motor_ctl.h: 
 ../radio/radio.h: 
+C:/Users/mengfanli2/workspace_2_1/car_radio_echo/bee/bee.h: 

@@ -24,9 +24,16 @@
 
 #include "radio.h"
 #include "motor_ctl.h"
+#include "bee.h"
 
 
 volatile uint8_t ADCDataReadyFlag = 0;
+
+uint8_t  receive_buffer[8]  = {0};
+uint8_t  command=0;
+uint16_t command_number=1;
+uint16_t command_last=1;
+uint8_t command_end=0;
 
 uint16_t ch0_value, ch1_value;
 //uint8_t data_to_car[8] = {0};
@@ -51,62 +58,31 @@ void timer0_IntHandler(void)
 
     //////////////////////////////////
     switch (main_counter)
-    {
-    case 10: {
-    	main_counter = 0;
-    } break;
-    default: {
-    	main_counter++;
-    } break;
-    }
 
-
-    //////// control the led. //////
-    switch (led_counter)
     {
-    case 0: {
-        // turn on led.
-        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
-        led_counter ++ ;
-        if(command_last==command_number&&command_number>1)
-        {
-            command=0;
-            data_complete_flag=true;//给修改权限
-            command_number=0;
-        }
-        command_last=command_number;
-    }  break;
-    case 500: {
-        // turn off led.
-        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0x0);
-        led_counter ++ ;
-        if(command_last==command_number&&command_number>1)
-        {
-            command=0;
-            data_complete_flag=true;
-            command_number=0;
-        }
-        command_last=command_number;
-    }  break;
-    case 1000: {
-    	// led计数器清零
-    	led_counter = 0;
-        if(command_last==command_number&&command_number>1)
-        {
-            command=0;
-            data_complete_flag=true;
-            command_number=0;
-        }
-        command_last=command_number;
-    } break;
-    default: {
-    	led_counter ++ ;
-    } break;
+    case 250:
+        if(bee_switch)
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_PIN_4);
+        else
+            GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, 0);
+        main_counter++;
+    	break;
+    case 500:
+        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_4, 0);
+        main_counter=0;
+    default:
+        main_counter++;
+    	break;
     }
 }
 
-
-
+void delayms(uint16_t counter)
+{   uint32_t i;
+    for(i=counter*1000;i>1;i--)
+    {
+        ;
+    }
+}
 void main(void)
 {
     //
@@ -124,6 +100,7 @@ void main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_GPIOF));
     GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_2);
+    GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_3);
 
     // 关总中断
     IntMasterDisable();
@@ -136,8 +113,13 @@ void main(void)
     //
     // 初始化无线串口
     //
-    radio_Init(115200);
+    radio_Init(115200,57600);
 
+//    while(1)
+//    {
+//        UARTCharPut(UART1_BASE,0xac);
+//        UARTCharPut(UART3_BASE,0xac);
+//    }
     //
     // 初始化定时器
     //
@@ -147,19 +129,19 @@ void main(void)
     // 初始化pwm
     //
     motor_Init();
-
+    bee_init();
     // 开总中断
     IntMasterEnable();
 
-
     while(1)
     {
+//        UARTCharPutNonBlocking(UART3_BASE,0xac);
     	if(data_complete_flag == true) {
     		data_complete_flag = false;
-
     		// 更新电机pwm
 //    		motor_Control(receive_buffer);
-    		car_driver(command);
+    		car_driver();
+//    	    delayms(100);
 
     	}
     }
@@ -242,7 +224,7 @@ void timer0_Configure(uint32_t ui32Period_Xms, void (*pfnHandler)(void))
     //
     // set the interrut priority
     //
-    IntPrioritySet (INT_TIMER0A, 0x0); //优先级最高highest
+    IntPrioritySet (INT_TIMER0A, 0x02); //优先级最高highest
 
     //
     // Turn on timer0A.
